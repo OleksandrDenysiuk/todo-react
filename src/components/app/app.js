@@ -17,7 +17,8 @@ export default class App extends Component {
             this.createItem('Have a lunch')
 
         ],
-        searchFilter: ''
+        searchFilter: '',
+        filter: 'active'
     }
 
     createItem(label) {
@@ -38,10 +39,27 @@ export default class App extends Component {
         })
     };
 
-    findItem = (items,text) => {
+    search = (items, term) => {
+        if(term.length === 0){
+            return items;
+        }
+
         return items.filter((item) => {
-            return item.label.toLowerCase().indexOf(text.toLowerCase()) > -1;
+            return item.label.toLowerCase().indexOf(term.toLowerCase()) > -1;
         });
+    }
+
+    filter(items, filter){
+        switch (filter) {
+            case 'active':
+                return items.filter((item) => !item.done);
+            case 'done':
+                return items.filter((item) => item.done);
+            case 'all':
+                return items;
+            default:
+                return items;
+        }
     }
 
     toggleProperty(arr, id, propName) {
@@ -84,15 +102,20 @@ export default class App extends Component {
         })
     }
 
-    onSearchUpdate = (searchFilter) =>{
+    onSearchUpdate = (searchFilter) => {
         this.setState({searchFilter});
     }
 
+    onFilterUpdate = (filter) => {
+        console.log('change');
+        this.setState({filter});
+    }
+
     render() {
-        const {data, searchFilter} = this.state;
+        const {data, searchFilter, filter} = this.state;
         const doneAmount = data.filter((el) => el.done).length;
         const todoAmount = data.length - doneAmount;
-        const posts = this.findItem(data, searchFilter);
+        const posts = this.filter(this.search(data, searchFilter), filter);
         return (
             <div className="todo-app">
                 <AppHeader
@@ -101,8 +124,10 @@ export default class App extends Component {
                 />
                 <div className="top-panel d-flex">
                     <SearchPanel
-                    onSearchUpdate={this.onSearchUpdate}/>
-                    <ItemStatusFilter/>
+                        onSearchUpdate={this.onSearchUpdate}/>
+                    <ItemStatusFilter
+                        filter={filter}
+                    onFilterUpdate={this.onFilterUpdate}/>
                 </div>
 
                 <TodoList todos={posts}
