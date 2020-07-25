@@ -6,24 +6,59 @@ import ItemStatusFilter from "../item-status-filter";
 import TodoList from "../todo-list";
 import ItemAddForm from "../item-add-form";
 
-export default class App extends Component{
+export default class App extends Component {
 
     maxId = 100;
 
     state = {
         data: [
-            {label: 'Drink Coffee', important: false, id: 1},
-            {label: 'Make Awesome App', important: true, id: 2},
-            {label: 'Have a lunch', important: false, id: 3}
+            this.createItem('Drink Coffee'),
+            this.createItem('Make Awesome App'),
+            this.createItem('Have a lunch')
         ]
+    }
+
+    createItem(label) {
+        return {
+            label,
+            important: false,
+            done: false,
+            id: this.maxId++};
     }
 
     addItem = (text) => {
         this.setState(({data}) => {
-            const newItem = {label: text, important: false, id: this.maxId++};
-            const newData = [...data, newItem];
+            const newData = [...data, this.createItem(text)];
             return {
                 data: newData
+            }
+        })
+    };
+
+
+    toggleProperty(arr, id, propName) {
+        const idx = arr.findIndex((el) => el.id === id);
+        const oldItem = arr[idx];
+        const newItem = {...oldItem, [propName]: !oldItem[propName]};
+        return [
+            ...arr.slice(0, idx),
+            newItem,
+            ...arr.slice(idx + 1)
+        ];
+    }
+
+    setImportantItem = (id) => {
+        this.setState(({data}) => {
+            return {
+                data: this.toggleProperty(data, id, 'important')
+            }
+        })
+    };
+
+    setDoneItem = (id) => {
+        this.setState(({data}) => {
+            return {
+                data: this.toggleProperty(data, id, 'done')
             }
         })
     }
@@ -32,7 +67,7 @@ export default class App extends Component{
         this.setState(({data}) => {
             const idx = data.findIndex((el) => el.id === id);
             const without = [
-                ...data.slice(0,idx),
+                ...data.slice(0, idx),
                 ...data.slice(idx + 1)
             ];
             return {
@@ -43,16 +78,21 @@ export default class App extends Component{
 
     render() {
         const {data} = this.state;
+        const doneAmount = data.filter((el) => el.done).length;
+        const todoAmount = data.length - doneAmount;
         return (
             <div className="todo-app">
-                <AppHeader toDo={1} done={3} />
+                <AppHeader toDo={todoAmount} done={doneAmount}/>
                 <div className="top-panel d-flex">
-                    <SearchPanel />
-                    <ItemStatusFilter />
+                    <SearchPanel/>
+                    <ItemStatusFilter/>
                 </div>
 
                 <TodoList todos={data}
-                onDelete={this.deleteItem}/>
+                          onDelete={this.deleteItem}
+                          onToggleImportant={this.setImportantItem}
+                          onToggleDone={this.setDoneItem}
+                />
                 <ItemAddForm onItemAdd={this.addItem}/>
             </div>
         );
