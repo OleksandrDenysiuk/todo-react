@@ -15,7 +15,9 @@ export default class App extends Component {
             this.createItem('Drink Coffee'),
             this.createItem('Make Awesome App'),
             this.createItem('Have a lunch')
-        ]
+
+        ],
+        searchFilter: ''
     }
 
     createItem(label) {
@@ -23,7 +25,8 @@ export default class App extends Component {
             label,
             important: false,
             done: false,
-            id: this.maxId++};
+            id: this.maxId++
+        };
     }
 
     addItem = (text) => {
@@ -35,6 +38,11 @@ export default class App extends Component {
         })
     };
 
+    findItem = (items,text) => {
+        return items.filter((item) => {
+            return item.label.toLowerCase().indexOf(text.toLowerCase()) > -1;
+        });
+    }
 
     toggleProperty(arr, id, propName) {
         const idx = arr.findIndex((el) => el.id === id);
@@ -76,19 +84,28 @@ export default class App extends Component {
         })
     }
 
+    onSearchUpdate = (searchFilter) =>{
+        this.setState({searchFilter});
+    }
+
     render() {
-        const {data} = this.state;
+        const {data, searchFilter} = this.state;
         const doneAmount = data.filter((el) => el.done).length;
         const todoAmount = data.length - doneAmount;
+        const posts = this.findItem(data, searchFilter);
         return (
             <div className="todo-app">
-                <AppHeader toDo={todoAmount} done={doneAmount}/>
+                <AppHeader
+                    toDo={todoAmount}
+                    done={doneAmount}
+                />
                 <div className="top-panel d-flex">
-                    <SearchPanel/>
+                    <SearchPanel
+                    onSearchUpdate={this.onSearchUpdate}/>
                     <ItemStatusFilter/>
                 </div>
 
-                <TodoList todos={data}
+                <TodoList todos={posts}
                           onDelete={this.deleteItem}
                           onToggleImportant={this.setImportantItem}
                           onToggleDone={this.setDoneItem}
